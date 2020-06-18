@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import http.server
 import threading
 import uuid
+import os
 
 def configure_cookies():
     jar = requests.cookies.RequestsCookieJar()
@@ -329,5 +330,13 @@ def serve():
 
 t = threading.Thread(target = serve)
 t.start()
+
+def createDirectory(dir):
+    try:
+        os.mkdir(dir)
+    except FileExistsError:
+        pass
+
+createDirectory("./tmp")
 
 Gtk.main()
