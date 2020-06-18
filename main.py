@@ -249,7 +249,6 @@ class PostPage(Page):
                 c = { "user": "", "content": comment, "time": "", "rich": False }
             else:
                 if "class" not in comment.attrs:
-                    print(comment)
                     c = { "user": "", "content": "rich", "time": "time", "rich": True }
                 elif "push" not in comment["class"]:
                     # richcontent
@@ -283,11 +282,16 @@ class PostPage(Page):
         post = {}
         post_meta = main_content.find_all("div", class_="article-metaline")
         post["title"] = post_meta[1].find("span", class_="article-meta-value").string if len(post_meta) > 0 else ""
-        
-        last_f2_node = main_content.find_all("span", class_="f2")[1]
-        content_str = str(main_content)
-        start = content_str.find(str(last_f2_node))
-        end = start + len(str(last_f2_node))
+
+        # find post link node  
+        post_link = None
+        for f2_node in main_content.find_all("span", class_="f2"):
+            if f2_node.get_text().find("文章網址") != -1:
+                post_link = f2_node
+                break
+        start = str(main_content).find(str(post_link))
+        end = start + len(str(post_link))
+
         content_str = str(main_content)[:end]
         comment_str = str(main_content)[end:]
              
