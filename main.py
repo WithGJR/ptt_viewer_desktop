@@ -157,7 +157,7 @@ class PostListPage(Page):
         for post in soup.find_all("div", class_="r-ent"):
             title = post.find("div", class_="title")
             post_dict = { 
-                "title": title.a.string if title.a is not None else title.string,
+                "title": title.a.string if title.a is not None else title.string.strip(),
                 "url":  f"https://www.ptt.cc{title.a['href']}" if title.a is not None else ""
             }
             post_list["list"].append(post_dict)
