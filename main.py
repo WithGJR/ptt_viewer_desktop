@@ -1,7 +1,7 @@
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("WebKit2", "4.0")
-from gi.repository import Gtk, WebKit2
+from gi.repository import Gtk, WebKit2, Gdk
 import requests
 from bs4 import BeautifulSoup
 import http.server
@@ -192,6 +192,8 @@ class PostPage(Page):
         self.clear_children()
         post = self.fetch_post()
         back_btn = Gtk.Button(label="Back")
+        back_btn_context = back_btn.get_style_context()
+        back_btn_context.add_class("back-button")
         back_btn.connect("clicked", lambda widget: self.page_switcher.go_back())
         self.box.add(back_btn)
         title = Gtk.Label(label=post["title"])
@@ -308,6 +310,12 @@ win.set_title("PTT Viewer")
 win.set_default_size(500, 500)
 win.set_border_width(10)
 win.connect("destroy", Gtk.main_quit)
+
+cssProvider = Gtk.CssProvider()
+cssProvider.load_from_path("./style/screen.css")
+screen = Gdk.Screen.get_default()
+styleContext = Gtk.StyleContext()
+styleContext.add_provider_for_screen(screen, cssProvider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
 scrolled_win = Gtk.ScrolledWindow()
 scrolled_win.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)

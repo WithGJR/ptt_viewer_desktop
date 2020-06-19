@@ -1,0 +1,30 @@
+window {
+    background: #000;
+    color: #bbb;
+}
+
+button {
+    background: #000;
+    color: #bbb;
+    border-color: #000;
+}
+
+button:hover {
+    background: #ccc;
+    color: #333;
+    border-color: #ccc;
+}
+
+.back-button {
+    border-color: #ccc;
+    margin-bottom: 10px;
+}
+
+list {
+    background: #000;
+}
+
+row {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
