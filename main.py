@@ -188,6 +188,45 @@ class PostPage(Page):
         with open(file, "w") as f:
             f.write(content)
 
+    def new_webview(self):
+        settings = WebKit2.Settings()
+        settings.set_enable_smooth_scrolling(True)
+        settings.set_media_playback_allows_inline(True)
+        settings.set_enable_javascript(True)
+        settings.set_enable_javascript_markup(True)
+        settings.set_enable_media(True)
+        settings.set_enable_media_capabilities(True)
+        settings.set_enable_mediasource(True)
+        settings.set_enable_media_stream(True)
+        settings.set_enable_encrypted_media(True)
+        settings.set_auto_load_images(True)
+        settings.set_allow_file_access_from_file_urls(True)
+        settings.set_allow_universal_access_from_file_urls(True)
+        settings.set_enable_hyperlink_auditing(True)
+        settings.set_enable_html5_local_storage(True)
+        settings.set_enable_html5_database(True)
+        settings.set_enable_offline_web_application_cache(True)
+        webview = WebKit2.WebView.new_with_settings(settings)
+        bg_color = Gdk.RGBA()
+        bg_color.parse("#000")
+        webview.set_background_color(bg_color)
+        return webview
+
+    def render_richcontent(self, content):
+        win = Gtk.ScrolledWindow()
+        if content.find("youtube") != -1:
+            win.set_min_content_height(200)
+        else:
+            win.set_min_content_height(500)
+        
+        webview = self.new_webview()
+        filename = str(uuid.uuid4()) + ".html"
+        self.create_HTML_file(f"./tmp/{filename}", "<html><body>" + content + "</body></html>")
+        webview.load_uri(f"http://localhost:8000/{filename}")
+        webview.show()
+        win.add(webview)
+        return win
+
     def render(self):
         self.clear_children()
         post = self.fetch_post()
@@ -198,12 +237,23 @@ class PostPage(Page):
         self.box.add(back_btn)
         title = Gtk.Label(label=post["title"])
         self.box.pack_start(title, True, True, 0)
-        for line in post["content"].split("\n"):
-            p = Gtk.Label(label=line.strip())
-            p.set_halign(Gtk.Align.START)
-            p.set_line_wrap(True)
-            p.set_selectable(True)
+    
+        for line in post["content"]:
+            if isinstance(line, str):
+                p = Gtk.Label(label=line.strip())
+                p.set_halign(Gtk.Align.START)
+                p.set_line_wrap(True)
+                p.set_selectable(True)
+            else:
+                if ("class" in line.attrs) and ("richcontent" in line["class"]):
+                    p = self.render_richcontent(str(line))    
+                else:
+                    p = Gtk.Label(label=line.get_text().strip())
+                    p.set_halign(Gtk.Align.START)
+                    p.set_line_wrap(True)
+                    p.set_selectable(True)
             self.box.pack_start(p, True, True, 0)
+
         for comment in post["comments"]:
             if not comment["rich"]:
                 p = Gtk.Label(label=f"{comment['user']} {comment['content']} {comment['time']}")
@@ -211,31 +261,8 @@ class PostPage(Page):
                 p.set_line_wrap(True)
                 p.set_selectable(True)
             else:
-                p = Gtk.ScrolledWindow()
-                p.set_min_content_height(500)
-                settings = WebKit2.Settings()
-                settings.set_enable_smooth_scrolling(True)
-                settings.set_media_playback_allows_inline(True)
-                settings.set_enable_javascript(True)
-                settings.set_enable_javascript_markup(True)
-                settings.set_enable_media(True)
-                settings.set_enable_media_capabilities(True)
-                settings.set_enable_mediasource(True)
-                settings.set_enable_media_stream(True)
-                settings.set_enable_encrypted_media(True)
-                settings.set_auto_load_images(True)
-                settings.set_allow_file_access_from_file_urls(True)
-                settings.set_allow_universal_access_from_file_urls(True)
-                settings.set_enable_hyperlink_auditing(True)
-                settings.set_enable_html5_local_storage(True)
-                settings.set_enable_html5_database(True)
-                settings.set_enable_offline_web_application_cache(True)
-                webview = WebKit2.WebView.new_with_settings(settings)
-                filename = str(uuid.uuid4()) + ".html"
-                self.create_HTML_file(f"./tmp/{filename}", "<html><body>" + comment["content"].replace("//", "https://") + "</body></html>")
-                webview.load_uri(f"http://localhost:8000/{filename}")
-                webview.show()
-                p.add(webview)
+                p = self.render_richcontent(str(comment))
+
             self.box.pack_start(p, True, True, 0)
         self.box.show_all()
 
@@ -275,7 +302,8 @@ class PostPage(Page):
         article_metaline_right = soup.find("div", class_="article-metaline-right")
         if article_metaline_right is not None:
             article_metaline_right.extract()
-        return soup.get_text()
+        return soup.find("div", id="main-content").children
+        
 
     def fetch_post(self):
         r = requests.get(self.url, cookies=configure_cookies())
