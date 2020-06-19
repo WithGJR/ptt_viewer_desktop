@@ -368,7 +368,7 @@ def serve():
     server = http.server.ThreadingHTTPServer(('', 8000), Handler)
     server.serve_forever()
 
-t = threading.Thread(target = serve)
+t = threading.Thread(target = serve, daemon=True)
 t.start()
 
 def createDirectory(dir):
