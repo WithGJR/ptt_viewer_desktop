@@ -277,21 +277,18 @@ class PostPage(Page):
             if isinstance(comment, str):
                 c = { "user": "", "content": comment, "time": "", "rich": False }
             else:
-                if "class" not in comment.attrs:
-                    c = { "user": "", "content": "rich", "time": "time", "rich": True }
-                elif "push" not in comment["class"]:
-                    # richcontent
-                    if "richcontent" in comment["class"]:
-                        c = {"user": "", "content": str(comment), "time": "", "rich": True }
-                    else:
-                        c = {"user": "", "content": comment.get_text(), "time": "", "rich": False }
-                else:
+                if ("class" in comment.attrs) and ("push" in comment["class"]):
                     c = {
-                       "user": comment.find("span", class_="push-userid").get_text().strip(),
+                        "user": comment.find("span", class_="push-userid").get_text().strip(),
                         "content": comment.find("span", class_="push-content").get_text(),
                         "time": comment.find("span", class_="push-ipdatetime").get_text(),
                         "rich": False
                     }
+                elif ("class" in comment.attrs) and ("richcontent" in comment["class"]):
+                    c = {"user": "", "content": str(comment), "time": "", "rich": True }
+                else:
+                    c = {"user": "", "content": comment.get_text(), "time": "", "rich": False}
+
             comments.append(c)
         return comments
 
